@@ -15,24 +15,16 @@ Script bash untuk membuat swap file di Linux dengan mudah.
 
 ## Cara Menggunakan
 
-### Download & Jalankan Langsung
+### One-line (Download & Jalankan)
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/pashamajied/mkswap/refs/heads/main/mkswap.sh | sudo bash
+curl -sSL https://raw.githubusercontent.com/pashamajied/mkswap/refs/heads/main/mkswap.sh -o mkswap.sh && sudo bash mkswap.sh
 ```
 
 atau dengan wget:
 
 ```bash
-wget -qO- https://raw.githubusercontent.com/pashamajied/mkswap/refs/heads/main/mkswap.sh | sudo bash
-```
-
-### Download Manual
-
-```bash
-wget https://raw.githubusercontent.com/pashamajied/mkswap/refs/heads/main/mkswap.sh
-chmod +x mkswap.sh
-sudo ./mkswap.sh
+wget -q https://raw.githubusercontent.com/pashamajied/mkswap/refs/heads/main/mkswap.sh && sudo bash mkswap.sh
 ```
 
 ## Menu

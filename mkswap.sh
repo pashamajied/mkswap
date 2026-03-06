@@ -1,76 +1,63 @@
 #!/bin/bash
 
-# Script untuk membuat swap file di Linux
-# Perlu dijalankan dengan root privileges
-
-# Spinner animation
-spinner() {
-    local pid=$1
-    local msg=$2
-    local delay=0.1
-    local spinstr='|/-\'
-    echo -ne "$msg "
-    while [ "$(ps a | awk '{print $1}' | grep $pid)" ]; do
-        local temp=${spinstr#?}
-        printf " [%c]  " "$spinstr"
-        spinstr=$temp${spinstr%"$temp"}
-        sleep $delay
-        printf "\b\b\b\b\b\b"
-    done
-    printf "    \b\b\b\b"
-}
+# Warna
+R=$'\033[0;31m'
+G=$'\033[0;32m'
+Y=$'\033[0;33m'
+B=$'\033[0;34m'
+M=$'\033[0;35m'
+C=$'\033[0;36m'
+W=$'\033[0;37m'
+BR=$'\033[1;91m'
+BG=$'\033[1;92m'
+BY=$'\033[1;93m'
+BB=$'\033[1;94m'
+BM=$'\033[1;95m'
+BC=$'\033[1;96m'
+BW=$'\033[1;97m'
+N=$'\033[0m'
 
 # Animated success message
 show_success() {
-    echo -e "\r\033[0;32m[OK]\033[0m $1"
+    printf "\r${G}[OK]${N} $1\n"
 }
 
-# Animated processing with fake delay for effect
+# Animated processing
 animate_step() {
     local step=$1
     local total=$2
     local msg=$3
     local command=$4
-    local show_output=$5
 
-    echo -ne "\033[0;36m[$step/$total]\033[0m $msg..."
-
-    # Run command
-    if [ "$show_output" = "yes" ]; then
-        echo ""
-        eval "$command"
-        show_success "Selesai"
-    else
-        eval "$command" > /dev/null 2>&1
-        # Small delay for animation effect
-        sleep 0.3
-        show_success "Selesai"
-    fi
+    printf "${C}[$step/$total]${N} $msg..."
+    eval "$command" > /dev/null 2>&1
+    sleep 0.3
+    show_success "Selesai"
 }
 
-# Cek apakah dijalankan sebagai root
+# Cek root
 if [ "$EUID" -ne 0 ]; then
-    echo -e "\033[0;31mError: Script ini harus dijalankan dengan sudo\033[0m"
+    echo "${R}Error: Script ini harus dijalankan dengan sudo${N}"
     echo "Gunakan: sudo ./mkswap.sh"
     exit 1
 fi
 
 clear
 
-# Animated banner
-echo -e "\033[1;36m"
+# Banner
+printf "${BC}"
 cat << "EOF"
 ==================================
     Pembuat Swap File
 ==================================
 EOF
-echo -e "\033[0m"
+printf "${N}"
 
 echo "Pilih ukuran swap yang ingin dibuat:"
-echo -e "\033[1;33m1.\033[0m 2 GB"
-echo -e "\033[1;33m2.\033[0m 4 GB"
-echo -e "\033[1;33m3.\033[0m Custom (input sendiri)"
-echo -e "\033[1;33m4.\033[0m Keluar"
+echo "${BY}1.${N} 2 GB"
+echo "${BY}2.${N} 4 GB"
+echo "${BY}3.${N} Custom (input sendiri)"
+echo "${BY}4.${N} Keluar"
 echo "=================================="
 read -p "Masukkan pilihan (1-4): " choice
 
@@ -86,7 +73,7 @@ case $choice in
     3)
         read -p "Masukkan ukuran swap dalam GB (contoh: 8): " custom_size
         if [[ ! "$custom_size" =~ ^[0-9]+$ ]] || [ "$custom_size" -lt 1 ]; then
-            echo -e "\033[0;31mError: Input tidak valid. Masukkan angka positif.\033[0m"
+            echo "${R}Error: Input tidak valid. Masukkan angka positif.${N}"
             exit 1
         fi
         SWAP_SIZE="${custom_size}G"
@@ -97,7 +84,7 @@ case $choice in
         exit 0
         ;;
     *)
-        echo -e "\033[0;31mError: Pilihan tidak valid\033[0m"
+        echo "${R}Error: Pilihan tidak valid${N}"
         exit 1
         ;;
 esac
@@ -106,88 +93,88 @@ SWAP_FILE="/swapfile"
 
 echo ""
 echo "=================================="
-echo -e "\033[1;36mKonfigurasi Swap:\033[0m"
-echo -e "Ukuran: \033[1;33m$SWAP_SIZE\033[0m ($SWAP_SIZE_GB GB)"
-echo -e "Lokasi: \033[1;33m$SWAP_FILE\033[0m"
+printf "${BC}Konfigurasi Swap:${N}\n"
+printf "Ukuran: ${BY}%s${N} (%s GB)\n" "$SWAP_SIZE" "$SWAP_SIZE_GB"
+printf "Lokasi: ${BY}%s${N}\n" "$SWAP_FILE"
 echo "=================================="
 
-# Cek apakah swap file sudah ada
+# Cek file exist
 if [ -f "$SWAP_FILE" ]; then
     echo ""
-    echo -e "\033[0;33mPeringatan: $SWAP_FILE sudah ada!\033[0m"
+    echo "${Y}Peringatan: $SWAP_FILE sudah ada!${N}"
     read -p "Hapus dan buat ulang? (y/n): " confirm
     if [[ "$confirm" =~ ^[Yy]$ ]]; then
-        echo -ne "Menghapus swap lama..."
+        printf "Menghapus swap lama..."
         swapoff "$SWAP_FILE" 2>/dev/null
         rm -f "$SWAP_FILE"
         sleep 0.5
         show_success "File swap lama dihapus"
     else
-        echo -e "\033[0;33mDibatalkan.\033[0m"
+        echo "${Y}Dibatalkan.${N}"
         exit 0
     fi
 fi
 
 echo ""
-echo -e "\033[1;36m==================================\033[0m"
-echo -e "\033[1;36m    Memulai Proses...\033[0m"
-echo -e "\033[1;36m==================================\033[0m"
+printf "${BC}==================================${N}\n"
+printf "${BC}    Memulai Proses...${N}\n"
+printf "${BC}==================================${N}\n"
 echo ""
 
-# Step 1: Membuat swap file
-animate_step 1 7 "Membuat swap file $SWAP_SIZE" "fallocate -l $SWAP_SIZE $SWAP_FILE" "no"
+# Step 1
+animate_step 1 7 "Membuat swap file $SWAP_SIZE" "fallocate -l $SWAP_SIZE $SWAP_FILE"
 
-# Step 2: Permission
-animate_step 2 7 "Mengatur permission" "chmod 600 $SWAP_FILE" "no"
+# Step 2
+animate_step 2 7 "Mengatur permission" "chmod 600 $SWAP_FILE"
 
-# Step 3: Format swap
-echo -ne "\033[0;36m[3/7]\033[0m Memformat swap file..."
+# Step 3
+printf "${C}[3/7]${N} Memformat swap file..."
 mkswap "$SWAP_FILE" > /dev/null 2>&1
 sleep 0.4
 show_success "Selesai"
 
-# Step 4: Aktifkan swap
-echo -ne "\033[0;36m[4/7]\033[0m Mengaktifkan swap..."
+# Step 4
+printf "${C}[4/7]${N} Mengaktifkan swap..."
 swapon "$SWAP_FILE" 2>/dev/null
 sleep 0.3
 show_success "Selesai"
 
-# Step 5: Status memori
+# Step 5
 echo ""
-echo -e "\033[0;36m[5/7]\033[0m Status memori:"
+printf "${C}[5/7]${N} Status memori:\n"
 free -h | while read line; do
-    echo -e "  \033[0;37m$line\033[0m"
+    printf "  ${W}%s${N}\n" "$line"
 done
 sleep 0.5
 
-# Step 6: Informasi swap
+# Step 6
 echo ""
-echo -e "\033[0;36m[6/7]\033[0m Informasi swap:"
+printf "${C}[6/7]${N} Informasi swap:\n"
 swapon --show | while read line; do
-    echo -e "  \033[0;37m$line\033[0m"
+    printf "  ${W}%s${N}\n" "$line"
 done
 sleep 0.5
 
-# Step 7: Fstab configuration
+# Step 7
 echo ""
 if ! grep -q "$SWAP_FILE" /etc/fstab 2>/dev/null; then
-    echo -ne "\033[0;36m[7/7]\033[0m Konfigurasi persisten (fstab)..."
+    printf "${C}[7/7]${N} Konfigurasi persisten (fstab)..."
     cp /etc/fstab /etc/fstab.bak 2>/dev/null
     echo "$SWAP_FILE none swap sw 0 0" >> /etc/fstab 2>/dev/null
     sleep 0.4
     show_success "Entry ditambahkan"
-    echo -e "  \033[0;90mBackup: /etc/fstab.bak\033[0m"
+    printf "  ${W}Backup: /etc/fstab.bak${N}\n"
 else
-    echo -e "\033[0;36m[7/7]\033[0m Entry swap sudah ada di fstab"
+    printf "${C}[7/7]${N} Entry swap sudah ada di fstab\n"
 fi
 
 echo ""
-echo -e "\033[1;36m==================================\033[0m"
-echo -e "\033[1;32m    Swap Berhasil Dibuat!\033[0m"
-echo -e "\033[1;36m==================================\033[0m"
-echo -e "Ukuran: \033[1;33m$SWAP_SIZE\033[0m"
-echo -e "Lokasi: \033[1;33m$SWAP_FILE\033[0m"
+printf "${BC}==================================${N}\n"
+printf "${BG}    Swap Berhasil Dibuat!${N}\n"
+printf "${BC}==================================${N}\n"
+printf "Ukuran: ${BY}%s${N}\n" "$SWAP_SIZE"
+printf "Lokasi: ${BY}%s${N}\n" "$SWAP_FILE"
 echo ""
-echo -e "\033[0;37mSwap akan tetap aktif setelah reboot.\033[0m"
-echo -e "\033[1;36m==================================\033[0m"
+printf "${W}Swap akan tetap aktif setelah reboot.${N}\n"
+printf "${BC}==================================${N}\n"
 echo ""
